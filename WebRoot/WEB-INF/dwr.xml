@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dwr PUBLIC "-//GetAhead Limited//DTD Direct Web Remoting 1.0//EN" "http://www.getahead.ltd.uk/dwr/dwr10.dtd">
+ 
+<dwr>
+  <allow>
+	    <create creator="spring" javascript="userServer">
+		     <param name="beanName" value="ClassesService"/>
+		      <!--<include>标签指定要公开给javascript的方法。不指定的话就公开所有方法。  
+	　　		<exclude>标签指定要防止被访问的方法。--> 
+		    <include method="findAll" />
+		    <include method="getById" />
+		</create>
+		    
+	    <convert match="com.heqing.bean.Classes" converter="bean">
+	    	<param name="include" value="id,name,headTeacher,classDirector,teachers"></param>  
+	    </convert>
+	    <convert match="com.heqing.bean.Teacher" converter="bean">
+	   		<param name="include" value="id,name,birthday,post,superviseClass,teachClasses,classDirector"></param>  
+	    </convert>
+  </allow>
+</dwr>

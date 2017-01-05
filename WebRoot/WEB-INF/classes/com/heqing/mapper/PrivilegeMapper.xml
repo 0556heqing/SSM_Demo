@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.heqing.dao.PrivilegeDao">
+
+    <resultMap id="privilegeResult" type="Privilege" >
+        <result column="p_id" property="id"></result>
+        <result column="p_url" property="url"></result>
+        <result column="p_name" property="name"></result>  
+        <result column="p_icon" property="icon"></result>   
+        <association column="p_id"  property="parent"  javaType="Role" select="getParent" />
+        <collection  column="p_id" property="roles"  ofType="Role"  select="getRoles" />
+    </resultMap>
+    
+    <select id="getRoles" parameterType="Long" resultMap="com.heqing.dao.RoleDao.roleResult">
+        select r.id r_id,r.name r_name from role r where r.id in
+		(select rp.role_id from role_privilege rp where rp.privilege_id =#{id})
+    </select>
+    
+    <select id="getParent" parameterType="Long" resultMap="com.heqing.dao.PrivilegeDao.privilegeResult">
+		select p1.url p_url,p1.name p_name,p1.icon p_icon from privilege p1,privilege p2
+		where p2.id =#{id} AND p2.parent_id = p1.id 
+    </select>
+     
+    <insert id="save" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+        insert into privilege (url,name,icon,parent_id) values (#{url},#{name},#{icon},#{parent.id})
+    </insert>
+    
+    <insert id="setRole_Privilege" parameterType="role_privilege">
+        insert into role_privilege (role_id, privilege_id) values 
+        <foreach collection="list" item="item" index="index" separator="," >  
+	        (#{item.role.id},#{item.privilege.id})  
+	    </foreach>       
+    </insert>
+
+    <update id="update" parameterType="privilege">
+        update privilege set url = #{url},name = #{name},icon = #{icon}
+        where id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="Long">
+        delete from privilege where id = #{id}
+    </delete>
+
+    <select id="getById" parameterType="Long" resultMap="privilegeResult">
+        select p.url p_url,p.name p_name,p.icon p_icon from privilege p where id = #{id}
+    </select>
+    
+    <select id="getByIds" parameterType="Long[]" resultMap="privilegeResult">
+        select p.url p_url,p.name p_name,p.icon p_icon from privilege p where id in
+	    <foreach collection="array" index="index" item="item" open="(" separator="," close=")">  
+	            #{item}   
+	    </foreach>  
+    </select>
+
+    <select id="findAll" resultMap="privilegeResult">
+        select p.url p_url,p.name p_name,p.icon p_icon from privilege p
+    </select>
+
+	<select id="getPageBean"  resultMap="privilegeResult">
+        select p.url p_url,p.name p_name,p.icon p_icon from privilege p where p.id limit #{0} , #{1} 
+    </select>
+</mapper>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.heqing.dao.RoleDao">
+
+    <resultMap id="roleResult" type="Role" >
+        <result column="r_id" property="id"></result>
+        <result column="r_name" property="name"></result>   
+        <collection  column="r_id" property="users"  ofType="User"  select="getUsers" />
+		<collection  column="r_id" property="privileges"  ofType="Privilege"  select="getPrivileges" />
+    </resultMap>
+    
+    <select id="getUsers" parameterType="Long" resultMap="com.heqing.dao.UserDao.userResult">
+        select u.id u_id,u.loginName u_loginName, u.password u_password from user u where u.id in
+		(select ur.user_id from user_role ur where ur.role_id =#{id})
+    </select>
+    
+    <select id="getPrivileges" parameterType="Long" resultMap="com.heqing.dao.PrivilegeDao.privilegeResult">
+        select p.url p_url,p.name p_name,p.icon p_icon from privilege p where p.id in
+		(select rp.privilege_id from role_privilege rp where rp.role_id =#{id})
+    </select>
+    
+    <insert id="save" keyColumn="id" keyProperty="id" useGeneratedKeys="true">
+        insert into role (name) values (#{name})
+    </insert>
+    
+    <insert id="setRole_Privilege" parameterType="role_privilege">
+        insert into role_privilege (role_id, privilege_id) values 
+        <foreach collection="list" item="item" index="index" separator="," >  
+	        (#{item.role.id},#{item.privilege.id})  
+	    </foreach>       
+    </insert>
+    
+    <insert id="setUser_Role" parameterType="user_role">
+	        insert into user_role (user_id, role_id) values 
+	        <foreach collection="list" item="item" index="index" separator="," >  
+		        (#{item.user.id},#{item.role.id})  
+		    </foreach>       
+    </insert>
+
+    <update id="update" parameterType="role">
+        update role set name = #{name}
+        where id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="Long">
+        delete from role where id = #{id}
+    </delete>
+
+    <select id="getById" parameterType="Long" resultMap="roleResult">
+        select r.id r_id,r.name r_name from role r where id = #{id}
+    </select>
+    
+    <select id="getByIds" parameterType="Long[]" resultMap="roleResult">
+        select r.id r_id,r.name r_name from role r where id in
+	    <foreach collection="array" index="index" item="item" open="(" separator="," close=")">  
+	            #{item}   
+	    </foreach>  
+    </select>
+
+    <select id="findAll" resultMap="roleResult">
+        select r.id r_id,r.name r_name from role r
+    </select>
+
+	<select id="getPageBean"  resultMap="roleResult">
+        select r.id r_id,r.name r_name from role r where r.id limit #{0} , #{1} 
+    </select>
+</mapper>
